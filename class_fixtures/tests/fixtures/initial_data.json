@@ -1,0 +1,21 @@
+[
+    {
+        "pk": 1,
+         "model": "tests.party",
+         "fields": 
+        {
+            "name": "Initial Party"
+        }
+    },
+    
+    {
+        "pk": 1,
+         "model": "tests.politician",
+         "fields": 
+        {
+            "name": "Initial Politician",
+            "party": 1,
+            "minimum_bribe": "10000.50"
+        }
+    }
+]

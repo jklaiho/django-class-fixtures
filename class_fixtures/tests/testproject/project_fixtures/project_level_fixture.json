@@ -1,0 +1,96 @@
+[
+    {
+        "pk": 3,
+         "model": "tests.band",
+         "fields": 
+        {
+            "name": "A Band"
+        }
+    },
+     
+    {
+        "pk": 4,
+         "model": "tests.band",
+         "fields": 
+        {
+            "name": "Judas Bishop"
+        }
+    },
+     
+    {
+        "pk": 4,
+         "model": "tests.metalband",
+         "fields": 
+        {
+            "leather_pants_worn": true
+        }
+    },
+     
+    {
+        "pk": 3,
+         "model": "tests.musician",
+         "fields": 
+        {
+            "name": "Rob Halberd"
+        }
+    },
+     
+    {
+        "pk": 4,
+         "model": "tests.musician",
+         "fields": 
+        {
+            "name": "Tom Deaf"
+        }
+    },
+     
+    {
+        "pk": 4,
+         "model": "tests.membership",
+         "fields": 
+        {
+            "band": 3,
+             "musician": 4,
+             "instrument": "Rhythm dissection",
+             "date_joined": "2005-01-01"
+        }
+    },
+     
+    {
+        "pk": 5,
+         "model": "tests.membership",
+         "fields": 
+        {
+            "band": 3,
+             "musician": 3,
+             "instrument": "Wooden spoon on forehead",
+             "date_joined": "2005-01-01"
+        }
+    },
+     
+    {
+        "pk": 6,
+         "model": "tests.membership",
+         "fields": 
+        {
+            "band": 4,
+             "musician": 3,
+             "instrument": "Rhythm egg",
+             "date_joined": "2007-09-12"
+        }
+    },
+     
+    {
+        "pk": 2,
+         "model": "tests.roadie",
+         "fields": 
+        {
+            "hauls_for": 
+            [
+                3,
+                 4
+            ],
+             "name": "Butte Crack"
+        }
+    }
+]

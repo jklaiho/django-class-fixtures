@@ -1,0 +1,28 @@
+[
+    {
+        "pk": 666,
+         "model": "tests.band",
+         "fields": 
+        {
+            "name": "A test will make sure this fixture is not written to the database with 'manage loaddata tests'."
+        }
+    },
+    
+    {
+        "pk": 667,
+         "model": "tests.band",
+         "fields": 
+        {
+            "name": "Instead, that command loads all the class fixtures of the 'fixtures' package of the 'tests' app."
+        }
+    },
+    
+    {
+        "pk": 668,
+         "model": "tests.band",
+         "fields": 
+        {
+            "name": "This is due to our override, normally it would load tests.json with that command."
+        }
+    }
+]

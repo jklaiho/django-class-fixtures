@@ -1,0 +1,147 @@
+[
+    {
+        "pk": 1,
+         "model": "tests.band",
+         "fields": 
+        {
+            "name": "The Featless"
+        }
+    },
+     
+    {
+        "pk": 2,
+         "model": "tests.band",
+         "fields": 
+        {
+            "name": "Cannibal Cops"
+        }
+    },
+     
+    {
+        "pk": 2,
+         "model": "tests.metalband",
+         "fields": 
+        {
+            "leather_pants_worn": false
+        }
+    },
+     
+    {
+        "pk": 1,
+         "model": "tests.musician",
+         "fields": 
+        {
+            "name": "Dingo Nyarr"
+        }
+    },
+     
+    {
+        "pk": 2,
+         "model": "tests.musician",
+         "fields": 
+        {
+            "name": "Trish Barns"
+        }
+    },
+     
+    {
+        "pk": 1,
+         "model": "tests.membership",
+         "fields": 
+        {
+            "band": 1,
+             "musician": 1,
+             "instrument": "Trombone",
+             "date_joined": "1980-06-06"
+        }
+    },
+     
+    {
+        "pk": 2,
+         "model": "tests.membership",
+         "fields": 
+        {
+            "band": 1,
+             "musician": 2,
+             "instrument": "Cheese grater",
+             "date_joined": "2010-01-12"
+        }
+    },
+     
+    {
+        "pk": 3,
+         "model": "tests.membership",
+         "fields": 
+        {
+            "band": 2,
+             "musician": 1,
+             "instrument": "One-string banjo",
+             "date_joined": "1995-11-11"
+        }
+    },
+     
+    {
+        "pk": 1,
+         "model": "tests.roadie",
+         "fields": 
+        {
+            "hauls_for": 
+            [
+                1,
+                 2
+            ],
+             "name": "Smokey Onthewater"
+        }
+    },
+    
+    {
+        "pk": 1,
+         "model": "tests.company",
+         "fields": 
+        {
+            "name": "EvilCorp Inc."
+        }
+    },
+    
+    {
+        "pk": 1,
+         "model": "tests.employee",
+         "fields": 
+        {
+            "manager": null,
+            "name": "M.T. Suit",
+            "company": 1
+        }
+    },
+    
+    {
+        "pk": 2,
+         "model": "tests.employee",
+         "fields": 
+        {
+            "manager": 1,
+            "name": "Karl Drone",
+            "company": 1
+        }
+    },
+    
+    {
+        "pk": 1,
+         "model": "tests.employeehistory",
+         "fields": 
+        {
+            "employee": 1,
+            "date_joined": "2002-04-27"
+        }
+    },
+
+    {
+        "pk": 2,
+         "model": "tests.employeehistory",
+         "fields": 
+        {
+            "employee": 2,
+            "date_joined": "2008-09-03"
+        }
+    }
+]
