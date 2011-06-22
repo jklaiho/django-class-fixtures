@@ -23,10 +23,9 @@ except ImportError:
 
 DjangoLoaddata = OriginalCommand()
 
-
 class Command(BaseCommand):
     help = 'Installs the named fixture(s) in the database. These can be '\
-        'filenames, names of apps, or "appname.fixture_name" references.'
+        'file names, names of apps, or "appname.fixture_name" references.'
     args = DjangoLoaddata.args
     option_list = DjangoLoaddata.option_list
     

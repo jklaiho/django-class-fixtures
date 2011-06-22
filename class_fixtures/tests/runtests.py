@@ -30,17 +30,20 @@ if not settings.configured:
         },
         DATABASE_ROUTERS = ['class_fixtures.tests.runtests.AlternateDBTestRouter'],
         INSTALLED_APPS = [
-            "class_fixtures",
-            "class_fixtures.tests",
-            "class_fixtures.tests.testapp_no_fixtures",
+            'class_fixtures',
+            'class_fixtures.tests',
+            'class_fixtures.tests.testapp_no_fixtures',
         ],
+        SERIALIZATION_FORMATS = {
+            'class': 'class_fixtures.serializer'
+        }
     )
 
 from django.test.simple import DjangoTestSuiteRunner
 
 def runtests(*test_args):
     if not test_args:
-        test_args = ["tests"]
+        test_args = ['tests']
     parent = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../..")
     sys.path.insert(0, parent)
     failures = DjangoTestSuiteRunner(failfast=False).run_tests(test_args)

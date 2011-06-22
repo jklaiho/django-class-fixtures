@@ -378,3 +378,9 @@ class RelatedObjectLoader(ObjectLoader):
                 raise RelatedObjectError('No %s objects with primary key %s exist.' % \
                     (self.model._meta.object_name, self.identifier)
                 )
+
+
+from django.core.serializers import register_serializer
+# Not thread safe according to the register_serializer docstring, don't know
+# if it matters here or not.
+register_serializer('class', 'class_fixtures.serializer')

@@ -19,3 +19,7 @@ INSTALLED_APPS = (
     'class_fixtures',
     'class_fixtures.tests',
 )
+
+SERIALIZATION_FORMATS = {
+    'class': 'class_fixtures.serializer'
+}
