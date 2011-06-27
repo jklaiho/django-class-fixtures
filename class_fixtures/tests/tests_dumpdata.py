@@ -90,17 +90,15 @@ class DumpDataTests(TestCase):
             floatf = 2345.67,
             integer = 345678,
             nullboolean = None,
-            text = (
-                "Bacon ipsum dolor sit amet ham eiusmod cupidatat, hamburger "
-                "voluptate non dolor. Pork belly excepteur chuck, shankle "
-                "ullamco fugiat meatloaf est quis meatball sint dolore. Shank "
-                "drumstick sint, tri-tip deserunt proident in. Pancetta "
-                "laboris culpa beef, pork chop venison magna duis tail. Nulla "
-                "in sirloin, minim bresaola ham cupidatat drumstick spare "
-                "ribs eiusmod ut. Shankle mollit ut, short ribs pork chop "
-                "drumstick meatloaf duis elit reprehenderit. Cillum short "
-                "loin flank est beef."
-            ),
+            text = "Bacon ipsum dolor sit amet ham eiusmod cupidatat, "\
+"hamburger voluptate non dolor. Pork belly excepteur chuck, shankle ullamco "\
+"fugiat meatloaf est quis meatball sint dolore. Shank drumstick sint, tri-tip "\
+"deserunt proident in. Pancetta laboris culpa beef, pork chop venison magna "\
+"duis tail. Nulla in sirloin, minim bresaola ham cupidatat drumstick spare ribs "\
+"eiusmod ut. Shankle mollit ut, short ribs pork chop drumstick meatloaf duis "\
+"""elit reprehenderit. Cillum short loin flank est beef.
+
+And the second paragraph looks like this.""",
             time = datetime.time(14, 45, 30)
         )
         with string_stdout() as output:
@@ -118,7 +116,7 @@ class DumpDataTests(TestCase):
                     "Shank drumstick sint, tri-tip deserunt proident in. Pancetta laboris culpa beef, pork chop "
                     "venison magna duis tail. Nulla in sirloin, minim bresaola ham cupidatat drumstick spare ribs "
                     "eiusmod ut. Shankle mollit ut, short ribs pork chop drumstick meatloaf duis elit reprehenderit. "
-                    "Cillum short loin flank est beef.', "
+                    r"Cillum short loin flank est beef.\n\nAnd the second paragraph looks like this.', "
                 "'time': datetime.time(14, 45, 30)})")
     
     def test_natural_key_output(self):
@@ -147,3 +145,6 @@ class DumpDataTests(TestCase):
             self.assertEqual(lines[11], "tests_jobposting_fixture.add(1, **{'additional_competencies': [], 'main_competency': 1, 'title': u'Rails Intern'})")
             self.assertEqual(lines[12], "tests_jobposting_fixture.add(2, **{'additional_competencies': [1], 'main_competency': 4, 'title': u'Elder Django Deity'})")
             self.assertEqual(lines[13], "tests_jobposting_fixture.add(3, **{'additional_competencies': [1, 2], 'main_competency': 3, 'title': u'A man of many talents'})")
+    
+    def test_custom_encoding(self):
+        pass
