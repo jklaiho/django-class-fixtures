@@ -93,3 +93,20 @@ class Politician(models.Model):
     name = models.CharField(max_length=100)
     party = models.ForeignKey(Party)
     minimum_bribe = models.DecimalField(max_digits=10, decimal_places=2, null=True)
+
+
+
+# For testing dumpdata with a complex model. Skip some fields whose serialized
+# representation is identical to that of others, e.g. FileField == CharField.
+class ComprehensiveModel(models.Model):
+    bigint = models.BigIntegerField()
+    boolean = models.BooleanField()
+    char = models.CharField(max_length=255)
+    date = models.DateField()
+    datetime = models.DateTimeField()
+    decimal = models.DecimalField(max_digits=6, decimal_places=2)
+    floatf = models.FloatField()
+    integer = models.IntegerField()
+    nullboolean = models.NullBooleanField()
+    text = models.TextField()
+    time = models.TimeField()

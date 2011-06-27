@@ -67,6 +67,12 @@ class BasicLoadingFunctionalityTests(TestCase):
         self.assertEqual(Employee.objects.count(), 1)
         self.assertTrue(Employee.objects.all()[0].company == Company.objects.all()[0])
     
+    def test_empty_m2m_relation(self):
+        roadie_fixture = Fixture(Roadie)
+        roadie_fixture.add(1, name='Marshall Amp', hauls_for=[])
+        roadie_fixture.load()
+        self.assertEqual(Roadie.objects.count(), 1)
+    
     def test_single_m2m_relation(self):
         band_fixture = Fixture(Band)
         band_fixture.add(1, name="Nuns N' Hoses")
