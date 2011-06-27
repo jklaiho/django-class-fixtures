@@ -22,8 +22,6 @@ def dump_class_fixtures(objects, stream, **options):
     """
     Generate fixture modules.
     """
-    encoding = options.pop('encoding', 'utf-8')
-    
     # Construct and output the import rows
     apps_models = {}
     for identifier in [d['model'] for d in objects]:
@@ -43,9 +41,9 @@ def dump_class_fixtures(objects, stream, **options):
         model_imports.append('from %s.models import %s' % (app, ', '.join(sorted(models))))
     
     stream.write(
-        '# -*- coding: {encoding} -*-\n'
+        '# -*- coding: utf-8 -*-\n'
         'from class_fixtures.models import Fixture\n'
-        '{imports}\n\n'.format(encoding=encoding, imports='\n'.join(model_imports))
+        '%s\n\n' % '\n'.join(model_imports)
     )
     
     # Construct and output the Fixture instances

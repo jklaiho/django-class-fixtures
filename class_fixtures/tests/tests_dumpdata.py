@@ -145,6 +145,3 @@ And the second paragraph looks like this.""",
             self.assertEqual(lines[11], "tests_jobposting_fixture.add(1, **{'additional_competencies': [], 'main_competency': 1, 'title': u'Rails Intern'})")
             self.assertEqual(lines[12], "tests_jobposting_fixture.add(2, **{'additional_competencies': [1], 'main_competency': 4, 'title': u'Elder Django Deity'})")
             self.assertEqual(lines[13], "tests_jobposting_fixture.add(3, **{'additional_competencies': [1, 2], 'main_competency': 3, 'title': u'A man of many talents'})")
-    
-    def test_custom_encoding(self):
-        pass
