@@ -728,6 +728,75 @@ class MultiDBTests(TestCase):
             self.assertEqual(Band.objects.using('alternate').get(name='Led Dirigible').roadie_set.count(), 1)
 
 
+class MilkmanIntegrationTests(TestCase):
+    """
+    The tests here just pass if you don't have Milkman installed.
+    """
+    def setUp(self):
+        try:
+            from milkman.dairy import milkman
+            self.milkman_found = True
+        except ImportError:
+            self.milkman_found = False
+    
+    def test_with_explicit_delayed_fk_relation(self):
+        if self.milkman_found:
+            company_fixture = Fixture(Company)
+            employee_fixture = Fixture(Employee)
+            
+            company_fixture.add(1, name='Macrohard')
+            # Name will be random
+            employee_fixture.add_random(1, company=company_fixture.fk(1), manager=None)
+            employee_fixture.load()
+            
+            self.assertEqual(Company.objects.count(), 1)
+            self.assertEqual(Employee.objects.count(), 1)
+            company = Company.objects.get(pk=1)
+            self.assertEqual(company.employee_set.count(), 1)
+    
+    def test_with_explicit_delayed_m2m_relation(self):
+        if self.milkman_found:
+            band_fixture = Fixture(Band)
+            roadie_fixture = Fixture(Roadie)
+            
+            band_fixture.add(1, name='Bar Fighters')
+            # Name will be random
+            roadie_fixture.add_random(1, hauls_for=[band_fixture.fk(1)])
+            roadie_fixture.load()
+            
+            self.assertEqual(Band.objects.count(), 1)
+            self.assertEqual(Roadie.objects.count(), 1)
+            self.assertEqual(Roadie.objects.get(pk=1).hauls_for.count(), 1)
+            self.assertEqual(Roadie.objects.get(pk=1).hauls_for.all()[0].name, 'Bar Fighters')
+    
+    def test_with_explicit_relation_to_preexisting_object(self):
+        if self.milkman_found:
+            company = Company.objects.create(name='Macrohard')
+            manager = Employee.objects.create(name='Sue Ecide-Note', company=company, manager=None)
+            
+            employee_fixture = Fixture(Employee)
+            # Name will be random
+            employee_fixture.add_random(2, company=company, manager=manager)
+            employee_fixture.load()
+            
+            self.assertEqual(Company.objects.count(), 1)
+            self.assertEqual(Employee.objects.count(), 2)
+            self.assertEqual(manager.employee_set.count(), 1)
+            self.assertEqual(company.employee_set.count(), 2)
+    
+    def test_with_generated_relation(self):
+        if self.milkman_found:
+            employee_fixture = Fixture(Employee)
+            employee_fixture.add_random(1)
+            employee_fixture.load()
+            self.assertEqual(Employee.objects.count(), 1)
+            # Since the Company FK is required, there should be one of those
+            # around as well
+            self.assertEqual(Company.objects.count(), 1)
+            # And that company should be connected to the employee
+            self.assertTrue(Employee.objects.all()[0] in Company.objects.all()[0].employee_set.all())
+            
+
 class ErrorConditionTests(TestCase):
     def test_adding_duplicate_pk(self):
         band_fixture = Fixture(Band)

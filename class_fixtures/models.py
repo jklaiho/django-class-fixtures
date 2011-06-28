@@ -13,6 +13,11 @@ from django.db.models.fields.related import (
     )
 from class_fixtures.exceptions import FixtureUsageError, RelatedObjectError
 
+try:
+    from milkman.dairy import milkman
+except ImportError:
+    milkman = None
+
 __all__ = ['Fixture']
 
 class Fixture(object):
@@ -75,6 +80,32 @@ class Fixture(object):
             raise FixtureUsageError('Cannot add more objects to a loaded fixture')
         if pk in self._kwarg_storage:
             raise FixtureUsageError('Primary key %s already added to another object in the same fixture.' % pk)
+        
+        definitions = self._build_relations(**kwargs)
+        
+        definitions.update({'pk': pk})
+        self._kwarg_storage[pk] = definitions
+    
+    def add_random(self, pk, **kwargs):
+        """
+        Creates randomly generated model instances using Milkman, if it is
+        installed. Raises a FixtureUsageError if not.
+        
+        Since the point of this integration is to be able to easily and safely
+        mix generated and predefined Fixture instances, we still require
+        explicit primary keys (milkman does not).
+        """
+        if milkman is None:
+            raise FixtureUsageError('Milkman is not installed, Fixture.add_random() not available.')
+        if pk in self._kwarg_storage:
+            raise FixtureUsageError('Primary key %s already added to another object in the same fixture.' % pk)
+        
+        definitions = self._build_relations(**kwargs)
+        
+        definitions.update({'pk': pk})
+        self._kwarg_storage[pk] = DelayedMilkmanDelivery(**definitions)
+    
+    def _build_relations(self, **kwargs):
         for fieldname, value in kwargs.items():
             field_is_m2m = False
             # The name given to a ManyToManyField in a model definition will
@@ -156,8 +187,7 @@ class Fixture(object):
                                 loaders.append(v)
                         kwargs.update({fieldname: loaders})
         
-        kwargs.update({'pk': pk})
-        self._kwarg_storage[pk] = kwargs
+        return kwargs
     
     def load(self, using=None):
         """
@@ -253,19 +283,29 @@ class FixtureLoader(object):
                 # list. If yes, replace the assignment with a proper post-save
                 # M2M addition.
                 if any([isinstance(getattr(self.fixture_instance.model, fieldname, None), m2m_descriptor) for m2m_descriptor in [mrod, rmrod]]):
-                    if pk not in self._pending_m2m:
-                        self._pending_m2m[pk] = {}
-                    if fieldname not in self._pending_m2m[pk]:
-                        self._pending_m2m[pk][fieldname] = []
-                    # The value assigned to the field can be either a single
-                    # M2M placeholder or an iterable of them.
-                    if isinstance(value, ObjectLoader):
-                        self._pending_m2m[pk][fieldname].append(value.get_related_object(using=using))
-                    elif isinstance(value, Iterable) and all([isinstance(v, ObjectLoader) for v in value]):
-                        for v in value:
-                            self._pending_m2m[pk][fieldname].append(v.get_related_object(using=using))
+                    if isinstance(model_def, DelayedMilkmanDelivery):
+                        # Milkman handles explicit M2Ms itself, no need to
+                        # add to the list of relations created later. Just
+                        # resolve to the real objects.
+                        resolved_def[fieldname] = []
+                        if isinstance(value, Iterable) and all([isinstance(v, ObjectLoader) for v in value]):
+                            for v in value:
+                                resolved_def[fieldname].append(v.get_related_object(using=using))
+                        else:
+                            raise RelatedObjectError('Invalid argument "%s" to a ManyToMany field' % value)
                     else:
-                        raise RelatedObjectError('Invalid argument "%s" to a ManyToMany field' % value)
+                        # Save the M2M relations for later saving
+                        if pk not in self._pending_m2m:
+                            self._pending_m2m[pk] = {}
+                        if fieldname not in self._pending_m2m[pk]:
+                            self._pending_m2m[pk][fieldname] = []
+                        # The value assigned to the field can be either a single
+                        # M2M placeholder or an iterable of them.
+                        if isinstance(value, Iterable) and all([isinstance(v, ObjectLoader) for v in value]):
+                            for v in value:
+                                self._pending_m2m[pk][fieldname].append(v.get_related_object(using=using))
+                        else:
+                            raise RelatedObjectError('Invalid argument "%s" to a ManyToMany field' % value)
                 else:
                     # The field is not an M2M and thus supports
                     # "fieldname=value" assignment, so just get a reference to
@@ -279,13 +319,16 @@ class FixtureLoader(object):
             self.kwarg_storage[pk] = resolved_def
             
             if router.allow_syncdb(using, self.fixture_instance.model):
-                if raw:
-                    # See the documentation on "raw mode" for an explanation
-                    obj = self.fixture_instance.model(**resolved_def)
-                    models.Model.save_base(obj, using=using, raw=True)
-                    self.saved[pk] = obj
+                if isinstance(model_def, DelayedMilkmanDelivery):
+                    self.saved[pk] = milkman.deliver(self.fixture_instance.model, **resolved_def)
                 else:
-                    self.saved[pk] = self.fixture_instance.model._default_manager.db_manager(using).create(**resolved_def)
+                    if raw:
+                        # See the documentation on "raw mode" for an explanation
+                        obj = self.fixture_instance.model(**resolved_def)
+                        models.Model.save_base(obj, using=using, raw=True)
+                        self.saved[pk] = obj
+                    else:
+                        self.saved[pk] = self.fixture_instance.model._default_manager.db_manager(using).create(**resolved_def)
         
         return self.saved
         
@@ -378,6 +421,10 @@ class RelatedObjectLoader(ObjectLoader):
                 raise RelatedObjectError('No %s objects with primary key %s exist.' % \
                     (self.model._meta.object_name, self.identifier)
                 )
+
+
+class DelayedMilkmanDelivery(dict):
+    pass
 
 
 from django.core.serializers import register_serializer
