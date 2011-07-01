@@ -2,7 +2,6 @@ from django.conf import settings
 from django.core.management import call_command
 from django.test import TestCase
 
-from class_fixtures.management.commands.dumpdata import Command as Dumpdata
 from class_fixtures.tests.models import (Band, MetalBand, Musician,
     Membership, Roadie, Competency, JobPosting, ComprehensiveModel)
 from class_fixtures.utils import string_stdout

@@ -86,8 +86,11 @@ def associate_handlers(fixture_labels):
                     try:
                         submodule = import_module('%s.fixtures.%s' % (path, label_components[1]))
                         handlers.append((label, 'class_fixtures', 'submodule_name', submodule))
-                    except ImportError:
-                        raise FixtureUsageError('No module named "%s" in "%s.fixtures"' % (label_components[1], label_components[0]))
+                    except ImportError, e:
+                        if "No module named" in str(e):
+                            raise FixtureUsageError('No module named "%s" in "%s.fixtures"' % (label_components[1], label_components[0]))
+                        else:
+                            raise e
                 else:
                     raise FixtureUsageError('Fixture labels referring to apps must be one of "appname" or "appname.fixturename"')
             else:
@@ -113,8 +116,11 @@ def associate_handlers(fixture_labels):
                     try:
                         submodule = import_module('%s.fixtures.%s' % (appname, label))
                         handlers.append((label, 'class_fixtures', 'submodule_name', submodule))
-                    except ImportError:
-                        continue
+                    except ImportError, e:
+                        if "No module named" in str(e):
+                            continue
+                        else:
+                            raise e
                 
                 if getattr(settings, 'FIXTURE_PACKAGES', False) \
                     and isinstance(settings.FIXTURE_PACKAGES, Iterable):
@@ -126,12 +132,16 @@ def associate_handlers(fixture_labels):
                         except ImportError:
                             raise ImportError('settings.FIXTURE_PACKAGES: %s is not an importable Python package' % package_path)
                         # OK, the string in FIXTURE_PACKAGES is valid,
-                        # further ImportErrors are to be expected
+                        # further ImportErrors regarding nonexistent modules
+                        # are to be expected
                         try:
                             submodule = import_module('%s.%s' % (package_path, label))
                             handlers.append((label, 'class_fixtures', 'submodule_name', submodule))
-                        except ImportError:
-                            continue
+                        except ImportError, e:
+                            if "No module named" in str(e):
+                                continue
+                            else:
+                                raise e
         else:
             raise FixtureUsageError('Invalid fixture label "%s"' % label)
     return handlers
@@ -151,6 +161,10 @@ def load_initial_data_modules(using=None):
     for appname in settings.INSTALLED_APPS:
         try:
             package = import_module('%s.fixtures' % appname)
+        except ImportError:
+            continue
+        
+        try:
             if module_has_submodule(package, 'initial_data'):
                 initial_data = import_module('%s.fixtures.initial_data' % appname)
                 fixtures = get_fixtures_from_module(initial_data)
@@ -158,8 +172,8 @@ def load_initial_data_modules(using=None):
                     object_count = fixture.load(using=using)
                     total_object_count += object_count
                     total_fixture_count += 1
-        except ImportError:
-            continue
+        except ImportError, e:
+            raise ImportError('In %s.fixtures.initial_data: %s' % (appname, e))
     
     return (total_object_count, total_fixture_count)
 
