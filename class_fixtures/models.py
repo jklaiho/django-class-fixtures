@@ -55,7 +55,7 @@ class Fixture(object):
         self.raw = raw
         
         # Allow for custom model classes, not just models.Model subclasses.
-        if type(model) == models.base.ModelBase:
+        if isinstance(model, models.base.ModelBase):
             self.model = model
         else:
             raise TypeError('%s is not a Django model class' % model.__name__)
