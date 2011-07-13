@@ -303,8 +303,6 @@ class DependencyResolutionTests(TestCase):
         employee_fixture.load()
         self.assertEqual(Company.objects.count(), 1)
         self.assertEqual(Employee.objects.count(), 1)
-        # Should have gotten loaded
-        self.assertTrue(company_fixture.loaded_to_db())
     
     def test_two_level_fk_o2o_hierarchy(self):
         # FK from Employee to Company, O2O from EmployeeHistory to Employee
@@ -319,9 +317,6 @@ class DependencyResolutionTests(TestCase):
         self.assertEqual(Company.objects.count(), 1)
         self.assertEqual(Employee.objects.count(), 1)
         self.assertEqual(EmployeeHistory.objects.count(), 1)
-        # Should have gotten loaded
-        self.assertTrue(employee_fixture.loaded_to_db())
-        self.assertTrue(company_fixture.loaded_to_db())
     
     def test_two_level_fk_o2o_hierarchy_mixed(self):
         # FK from Employee to Company, O2O from EmployeeHistory to Employee
@@ -336,9 +331,6 @@ class DependencyResolutionTests(TestCase):
         self.assertEqual(Company.objects.count(), 1)
         self.assertEqual(Employee.objects.count(), 1)
         self.assertEqual(EmployeeHistory.objects.count(), 1)
-        # Should have gotten loaded
-        self.assertTrue(company_fixture.loaded_to_db())
-        self.assertTrue(employee_fixture.loaded_to_db())
     
     def test_m2m_dependent_first(self):
         # The above FK tests already apply to explicit "through" M2Ms, so this
@@ -358,8 +350,6 @@ class DependencyResolutionTests(TestCase):
         self.assertEqual(Roadie.objects.get(name='Marshall Amp').hauls_for.count(), 2)
         self.assertEqual(Band.objects.get(name="Nuns N' Hoses").roadie_set.count(), 1)
         self.assertEqual(Band.objects.get(name='Led Dirigible').roadie_set.count(), 1)
-        # Should have gotten loaded
-        self.assertTrue(band_fixture.loaded_to_db())
 
 
 class FixtureDiscoveryHandlingLoadingTests(TestCase):
@@ -562,6 +552,16 @@ class FixtureDiscoveryHandlingLoadingTests(TestCase):
         self.assertEqual(Company.objects.count(), 2)
         self.assertEqual(Employee.objects.count(), 4)
         self.assertEqual(EmployeeHistory.objects.count(), 4)
+    
+    def test_correct_fixture_counts(self):
+        with string_stdout() as output:
+            call_command('loaddata', 'other_fixtures')
+            self.assertEqual(output.getvalue(), 'Installed 14 object(s) from 8 fixture(s)\n')
+    
+    def test_correct_initial_data_fixture_counts(self):
+        with string_stdout() as output:
+            call_command('loaddata', 'initial_data')
+            self.assertEqual(output.getvalue(), 'Installed 4 object(s) from 3 fixture(s)\n')
     
     def test_app_with_no_fixtures(self):
         """

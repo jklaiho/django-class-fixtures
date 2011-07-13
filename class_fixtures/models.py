@@ -201,21 +201,17 @@ class Fixture(object):
         Returns the number of objects saved to the database.
         """
         self._adding_allowed = False
-        saved_count = 0
+        saved_objects = {}
         
         # Load any unloaded dependencies of this instance first
         for dep in self._dependencies:
-            if not dep.loaded_to_db(using=using):
-                dep_saved_count = dep.load(using=using)
-                saved_count += dep_saved_count
+            saved_objects.update(dep.load(using=using))
         
-        if not self.loaded_to_db(using=using):
-            # Offload the actual processing to a FixtureLoader instance
-            fl = FixtureLoader(self._kwarg_storage, self)
-            saved_objs = fl.load(using=using, raw=self.raw)
-            saved_count += len(saved_objs)
-            fl.create_m2m_relations(using=using)
-        return saved_count
+        # Offload the actual processing to a FixtureLoader instance
+        fl = FixtureLoader(self._kwarg_storage, self)
+        saved_objects.update(fl.load(using=using, raw=self.raw))
+        fl.create_m2m_relations(using=using)
+        return saved_objects
     
     def get_object_by_pk(self, pk, using=None):
         try:
@@ -235,17 +231,6 @@ class Fixture(object):
         """
         return DelayedRelatedObjectLoader(self, pk)
     fk = m2m = o2o = _create_delayed_relation
-    
-    def loaded_to_db(self, using=None):
-        """
-        Checks if all of the object definitions contained in this Fixture have
-        already been loaded. Returns True or False accordingly.
-        """
-        if not router.allow_syncdb(using, self.model):
-            return False
-        pks = self._kwarg_storage.keys()
-        db_pks = self.model._default_manager.db_manager(using).values_list('pk', flat=True)
-        return all([pk in db_pks for pk in pks])
 
 
 class FixtureLoader(object):
@@ -328,10 +313,12 @@ class FixtureLoader(object):
                         models.Model.save_base(obj, using=using, raw=True)
                         self.saved[pk] = obj
                     else:
-                        self.saved[pk] = self.fixture_instance.model._default_manager.db_manager(using).create(**resolved_def)
+                        obj = self.fixture_instance.model(**resolved_def)
+                        obj.save(using=using)
+                        self.saved[pk] = obj
         
         return self.saved
-        
+    
     def create_m2m_relations(self, using=None):
         """
         Writes any pending M2M relations to the database after the objects
@@ -424,6 +411,12 @@ class RelatedObjectLoader(ObjectLoader):
 
 
 class DelayedMilkmanDelivery(dict):
+    """
+    No-op dictionary subclass to aid in identifying the use of Milkman in the
+    loader methods. Not the most pythonic way, relying on isinstance for it,
+    but the least work to fit this in with the logic that existed before
+    Milkman support.
+    """
     pass
 
 

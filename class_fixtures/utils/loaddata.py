@@ -147,35 +147,26 @@ def associate_handlers(fixture_labels):
     return handlers
 
 
-def load_initial_data_modules(using=None):
+def gather_initial_data_fixtures(using=None):
     """
     Iterate through the ``fixtures`` package of all installed apps, looking
-    for contained initial_data modules and loading all that are found.
-    
-    Returns a tuple of two counts:
-    
-    (loaded objects inside fixtures, loaded fixtures)
+    for contained initial_data modules and returning a list of all that are
+    found.
     """
-    total_object_count = 0
-    total_fixture_count = 0
+    initial_fixtures = []
     for appname in settings.INSTALLED_APPS:
         try:
             package = import_module('%s.fixtures' % appname)
         except ImportError:
             continue
-        
         try:
             if module_has_submodule(package, 'initial_data'):
                 initial_data = import_module('%s.fixtures.initial_data' % appname)
-                fixtures = get_fixtures_from_module(initial_data)
-                for fixture in fixtures:
-                    object_count = fixture.load(using=using)
-                    total_object_count += object_count
-                    total_fixture_count += 1
+                initial_fixtures.extend(get_fixtures_from_module(initial_data))
         except ImportError, e:
             raise ImportError('In %s.fixtures.initial_data: %s' % (appname, e))
     
-    return (total_object_count, total_fixture_count)
+    return initial_fixtures
 
 
 def get_fixtures_from_module(module):

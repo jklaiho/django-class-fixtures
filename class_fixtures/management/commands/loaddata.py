@@ -14,7 +14,7 @@ from django.db import connections, transaction, DEFAULT_DB_ALIAS
 
 from class_fixtures.exceptions import FixtureUsageError
 from class_fixtures.utils.loaddata import (associate_handlers,
-    get_fixtures_from_module, load_initial_data_modules, 
+    get_fixtures_from_module, gather_initial_data_fixtures,
     process_django_output)
 try:
     from collections import OrderedDict # Python 2.7 onwards
@@ -115,17 +115,17 @@ class Command(BaseCommand):
                             # is included in the list twice through submodule discovery.
                             if submod_fixture not in fixtures:
                                 fixtures.append(submod_fixture)
+                elif type_ is None and label == 'initial_data':
+                    fixtures = gather_initial_data_fixtures()
                 
                 try:
-                    if handler != 'both_for_initial':
-                        for fixture in fixtures:
-                            object_count = fixture.load(using=using)
-                            total_object_count += object_count
-                            total_fixture_count += 1
-                    else:
-                        object_count, fixture_count = load_initial_data_modules(using=using)
-                        total_object_count += object_count
-                        total_fixture_count += fixture_count
+                    saved_set = set()
+                    for fixture in fixtures:
+                        saved_objects = fixture.load(using=using)
+                        for obj in saved_objects.items():
+                            saved_set.add(obj)
+                        total_fixture_count += 1
+                    total_object_count += len(saved_set)
                 except (SystemExit, KeyboardInterrupt):
                     raise
                 except Exception:
