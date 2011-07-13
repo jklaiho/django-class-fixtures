@@ -407,7 +407,7 @@ class FixtureDiscoveryHandlingLoadingTests(TestCase):
         l = Loaddata()
         l.stdout = sys.stdout
         l.stderr = sys.stderr
-        l.handle(fixture_module)
+        l.handle(fixture_module, verbosity=0)
         self.assertEqual(Band.objects.count(), 2)
         self.assertEqual(MetalBand.objects.count(), 1)
         self.assertEqual(Musician.objects.count(), 2)
@@ -424,7 +424,7 @@ class FixtureDiscoveryHandlingLoadingTests(TestCase):
         l = Loaddata()
         l.stdout = sys.stdout
         l.stderr = sys.stderr
-        l.handle('tests')
+        l.handle('tests', verbosity=0)
         # fixtures.some_fixtures and fixtures.other_fixtures contents combined
         self.assertEqual(Band.objects.count(), 2)
         self.assertEqual(MetalBand.objects.count(), 1)
@@ -442,7 +442,7 @@ class FixtureDiscoveryHandlingLoadingTests(TestCase):
         l = Loaddata()
         l.stdout = sys.stdout
         l.stderr = sys.stderr
-        l.handle('tests.some_fixtures')
+        l.handle('tests.some_fixtures', verbosity=0)
         self.assertEqual(Company.objects.count(), 1)
         self.assertEqual(Employee.objects.count(), 2)
         self.assertEqual(EmployeeHistory.objects.count(), 2)
@@ -457,7 +457,7 @@ class FixtureDiscoveryHandlingLoadingTests(TestCase):
         l = Loaddata()
         l.stdout = sys.stdout
         l.stderr = sys.stderr
-        l.handle('some_fixtures')
+        l.handle('some_fixtures', verbosity=0)
         self.assertEqual(Company.objects.count(), 1)
         self.assertEqual(Employee.objects.count(), 2)
         self.assertEqual(EmployeeHistory.objects.count(), 2)
@@ -531,7 +531,7 @@ class FixtureDiscoveryHandlingLoadingTests(TestCase):
             l = Loaddata()
             l.stdout = sys.stdout
             l.stderr = sys.stderr
-            l.handle('some_fixtures', 'moar_fixtures')
+            l.handle('some_fixtures', 'moar_fixtures', verbosity=0)
             self.assertEqual(Company.objects.count(), 1)
             self.assertEqual(Employee.objects.count(), 2)
             self.assertEqual(EmployeeHistory.objects.count(), 2)
@@ -565,13 +565,31 @@ class FixtureDiscoveryHandlingLoadingTests(TestCase):
     
     def test_app_with_no_fixtures(self):
         """
-        When run against an app name with no fixtures, "No fixtures found\n"
+        When run against an app name with no fixtures, "No fixtures found.\n"
         should get printed.
         """
         with string_stdout() as output:
             call_command('loaddata', 'testapp_no_fixtures', verbosity=1)
             self.assertEqual(output.getvalue(), 'No fixtures found.\n')
     
+    def test_no_django_output_class_fixture_match_only(self):
+        """
+        With verbosity > 1, if Django doesn't find a fixture with ``manage.py
+        loaddata`` but django-class-fixtures does, Django's "No fixtures
+        found" output must not get printed.
+        """
+        with string_stdout() as output:
+            # No extension, so both try to look for it, only a fixture module
+            # is found. Django will print 'No fixtures found' but it must not
+            # be printed.
+            call_command('loaddata', 'other_fixtures', verbosity=1)
+            self.assertEqual(output.getvalue(), 'Installed 14 object(s) from 8 fixture(s)\n')
+            # Test that "No fixtures found." is pruned out from Django's
+            # output when using a higher verbosity.
+            call_command('loaddata', 'other_fixtures', verbosity=2)
+            self.assertNotEqual(output.getvalue().split('\n')[-3], 'No fixtures found.')
+            self.assertEqual(output.getvalue().split('\n')[-2], 'Installed 14 object(s) from 8 fixture(s)')
+            
     def test_initial_data_loading(self):
         """
         The fixtures directory/package of the "tests" app contains an

@@ -49,7 +49,7 @@ class Command(BaseCommand):
         total_fixture_count = 0
         do_initial_data = False
         captured_outputs = []
-        original_verbosity = options.get('verbosity')
+        original_verbosity = int(options.get('verbosity'))
         # Mark this loaddata run as a special case for syncdb loading.
         # Django's loaddata will be run first, ours second.
         if fixture_labels == ('initial_data',):
@@ -154,7 +154,12 @@ class Command(BaseCommand):
                 self.stdout.write("No fixtures found.\n")
         else:
             if original_verbosity >= 2 and captured_outputs:
-                self.stdout.write('\n'.join(captured_outputs))
+                # Prevent printing Django's result row along with our own
+                # when both handlers activate but only class-based fixtures
+                # are found.
+                if captured_outputs[-1].startswith('No fixtures found.'):
+                    captured_outputs = captured_outputs[:-1]
+                self.stdout.write('\n'.join(captured_outputs) + '\n')
             if original_verbosity >= 1:
                 # The original loaddata has another possible output format
                 # used when less objects were loaded than were present in the
