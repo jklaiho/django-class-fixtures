@@ -109,7 +109,7 @@ And the second paragraph looks like this.""",
             self.assertEqual(lines[6], "tests_comprehensivemodel_fixture.add(1, "
                 "**{'bigint': 9223372036854775807L, 'boolean': True, 'char': u'Hey hey now', "
                 "'date': datetime.date(2011, 6, 6), 'datetime': datetime.datetime(2011, 5, 5, 12, 30, 7), "
-                "'decimal': Decimal('1234.56'), 'floatf': 2345.6700000000001, 'integer': 345678, 'nullboolean': None, "
+                "'decimal': Decimal('1234.56'), 'floatf': 2345.67, 'integer': 345678, 'nullboolean': None, "
                 "'text': u'Bacon ipsum dolor sit amet ham eiusmod cupidatat, hamburger voluptate non dolor. "
                     "Pork belly excepteur chuck, shankle ullamco fugiat meatloaf est quis meatball sint dolore. "
                     "Shank drumstick sint, tri-tip deserunt proident in. Pancetta laboris culpa beef, pork chop "

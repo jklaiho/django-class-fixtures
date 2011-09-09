@@ -60,7 +60,22 @@ class Fixture(object):
         else:
             raise TypeError('%s is not a Django model class' % model.__name__)
     
-    def add(self, pk, **kwargs):
+    def add(self, *args, **kwargs):
+        """
+        A tiny gatekeeper method. Checks that ``args`` contains precisely one
+        item, assumed to be a valid primary key for an instance of
+        ``self.model``. See ``_add`` for the actual instance adding
+        functionality.
+        
+        The reason this method exists is that running some_fixture.add()
+        without the positional PK parameter (a common mistake in handmade
+        fixtures) raises an unhelpful TypeError that can't be caught in _add.
+        """
+        if len(args) != 1:
+            raise FixtureUsageError('Fixture.add() must receive a primary key value as its single positional argument')
+        self._add(*args, **kwargs)
+    
+    def _add(self, pk, **kwargs):
         """
         Adds model instance definitions to the Fixture instance. Does *not*
         write anything to the database (that is done when the ``load`` method

@@ -821,6 +821,10 @@ class ErrorConditionTests(TestCase):
         band_fixture.add(1, name="Nuns N' Hoses")
         self.assertRaises(FixtureUsageError, band_fixture.add, 1, name='Led Dirigible')
     
+    def test_no_pk(self):
+        band_fixture = Fixture(Band)
+        self.assertRaises(FixtureUsageError, band_fixture.add, name='Led Dirigible')
+    
     def test_illegal_reverse_fk_assignment(self):
         employee_fixture = Fixture(Employee)
         # This specific example would fail at the Django level due to
