@@ -4,8 +4,8 @@ python:
   - "2.7"
 
 env:
-  - DJANGO=django>=1.5,<=1.6 --use-mirrors
-  - DJANGO=django>=1.4,<=1.5 --use-mirrors
+  - DJANGO="django>=1.5,<1.6 --use-mirrors"
+  - DJANGO="django>=1.4,<1.5 --use-mirrors"
 
 install:
   - pip install $DJANGO
