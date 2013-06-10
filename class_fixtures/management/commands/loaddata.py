@@ -3,7 +3,6 @@ Overridden loaddata command for class-based fixtures, with a fallback to the
 original command for traditional file-based fixtures.
 """
 import sys
-import types
 from pkgutil import walk_packages
 from StringIO import StringIO
 
@@ -12,14 +11,9 @@ from django.core.management.commands.loaddata import Command as OriginalCommand
 from django.core.management.color import no_style
 from django.db import connections, transaction, DEFAULT_DB_ALIAS
 
-from class_fixtures.exceptions import FixtureUsageError
 from class_fixtures.utils.loaddata import (associate_handlers,
     get_fixtures_from_module, gather_initial_data_fixtures,
     process_django_output)
-try:
-    from collections import OrderedDict # Python 2.7 onwards
-except ImportError:
-    from class_fixtures.utils.ordereddict import OrderedDict
 
 DjangoLoaddata = OriginalCommand()
 
@@ -28,23 +22,23 @@ class Command(BaseCommand):
         'file names, names of apps, or "appname.fixture_name" references.'
     args = DjangoLoaddata.args
     option_list = DjangoLoaddata.option_list
-    
+
     def handle(self, *fixture_labels, **options):
         using = options.get('database', DEFAULT_DB_ALIAS)
         connection = connections[using]
         self.style = no_style()
         show_traceback = options.get('traceback', False)
         commit = options.get('commit', True)
-        
+
         # I'm sure there is a valid reason why Django's loaddata does this,
         # so I'm just going to replicate its behaviour.
         cursor = connection.cursor()
-        
+
         if commit:
             transaction.commit_unless_managed(using=using)
             transaction.enter_transaction_management(using=using)
             transaction.managed(True, using=using)
-        
+
         total_object_count = 0
         total_fixture_count = 0
         do_initial_data = False
@@ -58,7 +52,7 @@ class Command(BaseCommand):
         else:
             # Build a list of (label, handler, type, resolved_object) tuples.
             fixture_handlers = associate_handlers(fixture_labels)
-        
+
         for label, handler, type_, obj in fixture_handlers:
             if handler in ['django', 'both_for_initial']:
                 captured_stdout = StringIO()
@@ -78,6 +72,8 @@ class Command(BaseCommand):
                 # inside Django's loaddata
                 options['commit'] = False
                 try:
+                    if 'database' not in options:
+                        options.update({'database': using})
                     DjangoLoaddata.handle(label, **options)
                 except Exception:
                     if commit:
@@ -89,7 +85,7 @@ class Command(BaseCommand):
                 total_object_count += django_object_count
                 total_fixture_count += django_fixture_count
                 captured_outputs.extend(other_msgs)
-            
+
             if handler in ['class_fixtures', 'both_for_initial']:
                 if type_ == 'instance':
                     fixtures = [label]
@@ -101,7 +97,7 @@ class Command(BaseCommand):
                     fixtures = get_fixtures_from_module(obj)
                 elif type_ == 'app_label':
                     # obj is a reference to the fixtures package of the
-                    # app named in the label. Load all the fixture modules 
+                    # app named in the label. Load all the fixture modules
                     # contained within, excluding initial_data.
                     fixtures = []
                     for importer, module_name, is_pkg in walk_packages(obj.__path__):
@@ -117,7 +113,7 @@ class Command(BaseCommand):
                                 fixtures.append(submod_fixture)
                 elif type_ is None and label == 'initial_data':
                     fixtures = gather_initial_data_fixtures()
-                
+
                 try:
                     saved_set = set()
                     for fixture in fixtures:
@@ -144,11 +140,11 @@ class Command(BaseCommand):
         if commit:
             transaction.commit(using=using)
             transaction.leave_transaction_management(using=using)
-        
+
         # Same MySQL workaround as in Django's loaddata
         if commit:
             connection.close()
-        
+
         if total_fixture_count == 0:
             if original_verbosity >= 1:
                 self.stdout.write("No fixtures found.\n")
@@ -166,4 +162,3 @@ class Command(BaseCommand):
                 # fixtures, but I don't care enough to implement it.
                 self.stdout.write("Installed %d object(s) from %d fixture(s)\n" %
                     (total_object_count, total_fixture_count))
-        
