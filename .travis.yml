@@ -9,7 +9,10 @@ env:
 
 install:
   - "pip install $DJANGO --use-mirrors"
-  - "pip install ."
   
 script: python setup.py test
+
+notifications:
+  email:
+    - jklaiho@iki.fi
 
