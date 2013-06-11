@@ -1,3 +1,4 @@
+import sys
 from django.conf import settings
 from django.core.management import call_command
 from django.test import TestCase
@@ -79,8 +80,11 @@ class DumpDataTests(TestCase):
     def test_complex_model(self):
         import datetime
         from decimal import Decimal
+
+        # https://docs.djangoproject.com/en/dev/ref/models/fields/#bigintegerfield
+        bigintfield_max = 9223372036854775807
         cm = ComprehensiveModel.objects.create(
-            bigint = 9223372036854775807,
+            bigint = bigintfield_max,
             boolean = True,
             char = 'Hey hey now',
             date = datetime.date(2011, 6, 6),
@@ -100,12 +104,6 @@ class DumpDataTests(TestCase):
 And the second paragraph looks like this.""",
             time = datetime.time(14, 45, 30)
         )
-        # There's some strange variance on whether bigint long numbers are
-        # repr'd with the L suffix or without it, seemingly by platform (Linux
-        # and OS X seem to differ, at least), which affects the success of this
-        # test if we assume one or the other. So, we repr it separately here and
-        # use string substitution in the assertEqual call below.
-        bigint_repr = repr(cm.bigint)
 
         with string_stdout() as output:
             call_command('dumpdata', 'tests', format='class', exclude=[
@@ -113,6 +111,10 @@ And the second paragraph looks like this.""",
             lines = output.getvalue().split('\n')
             self.assertEqual(lines[2], "from tests.models import ComprehensiveModel")
             self.assertEqual(lines[4], "tests_comprehensivemodel_fixture = Fixture(ComprehensiveModel)")
+            # Depending on the platform where the test is being run, bigintfield_max
+            # may be an integer or a long, depending on the value of sys.maxint.
+            # The repr() result on the field will vary accordingly (L suffix or not)
+            # so the assertEqual operand must vary also.
             self.assertEqual(lines[6], "tests_comprehensivemodel_fixture.add(1, "
                 "**{'bigint': %s, 'boolean': True, 'char': u'Hey hey now', "
                 "'date': datetime.date(2011, 6, 6), 'datetime': datetime.datetime(2011, 5, 5, 12, 30, 7), "
@@ -123,7 +125,7 @@ And the second paragraph looks like this.""",
                     "venison magna duis tail. Nulla in sirloin, minim bresaola ham cupidatat drumstick spare ribs "
                     "eiusmod ut. Shankle mollit ut, short ribs pork chop drumstick meatloaf duis elit reprehenderit. "
                     r"Cillum short loin flank est beef.\n\nAnd the second paragraph looks like this.', "
-                "'time': datetime.time(14, 45, 30)})" % bigint_repr)
+                "'time': datetime.time(14, 45, 30)})" % repr(bigintfield_max))
 
     def test_natural_key_output(self):
         rails_n00b = Competency.objects.create(framework='Ruby on Rails', level=1)
