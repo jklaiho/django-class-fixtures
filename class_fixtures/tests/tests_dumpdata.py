@@ -93,12 +93,12 @@ class DumpDataTests(TestCase):
             floatf = 2345.67,
             integer = 345678,
             nullboolean = None,
-            text = "Bacon ipsum dolor sit amet ham eiusmod cupidatat, "\
-"hamburger voluptate non dolor. Pork belly excepteur chuck, shankle ullamco "\
-"fugiat meatloaf est quis meatball sint dolore. Shank drumstick sint, tri-tip "\
-"deserunt proident in. Pancetta laboris culpa beef, pork chop venison magna "\
-"duis tail. Nulla in sirloin, minim bresaola ham cupidatat drumstick spare ribs "\
-"eiusmod ut. Shankle mollit ut, short ribs pork chop drumstick meatloaf duis "\
+            text = "Bacon ipsum dolor sit amet ham eiusmod cupidatat, "
+"hamburger voluptate non dolor. Pork belly excepteur chuck, shankle ullamco "
+"fugiat meatloaf est quis meatball sint dolore. Shank drumstick sint, tri-tip "
+"deserunt proident in. Pancetta laboris culpa beef, pork chop venison magna "
+"duis tail. Nulla in sirloin, minim bresaola ham cupidatat drumstick spare ribs "
+"eiusmod ut. Shankle mollit ut, short ribs pork chop drumstick meatloaf duis "
 """elit reprehenderit. Cillum short loin flank est beef.
 
 And the second paragraph looks like this.""",
