@@ -1,9 +1,8 @@
-import sys
-from django.conf import settings
+import re
 from django.core.management import call_command
 from django.test import TestCase
 
-from class_fixtures.tests.models import (Band, MetalBand, Musician,
+from class_fixtures.tests.models import (Band, Musician,
     Membership, Roadie, Competency, JobPosting, ComprehensiveModel)
 from class_fixtures.utils import string_stdout
 
@@ -93,6 +92,7 @@ class DumpDataTests(TestCase):
             floatf = 2345.67,
             integer = 345678,
             nullboolean = None,
+            time = datetime.time(14, 45, 30),
             text = "Bacon ipsum dolor sit amet ham eiusmod cupidatat, "
 "hamburger voluptate non dolor. Pork belly excepteur chuck, shankle ullamco "
 "fugiat meatloaf est quis meatball sint dolore. Shank drumstick sint, tri-tip "
@@ -101,31 +101,43 @@ class DumpDataTests(TestCase):
 "eiusmod ut. Shankle mollit ut, short ribs pork chop drumstick meatloaf duis "
 """elit reprehenderit. Cillum short loin flank est beef.
 
-And the second paragraph looks like this.""",
-            time = datetime.time(14, 45, 30)
-        )
+And the second paragraph looks like this.""")
 
         with string_stdout() as output:
             call_command('dumpdata', 'tests', format='class', exclude=[
                 'tests.Party', 'tests.Politician'])
             lines = output.getvalue().split('\n')
-            self.assertEqual(lines[2], "from tests.models import ComprehensiveModel")
-            self.assertEqual(lines[4], "tests_comprehensivemodel_fixture = Fixture(ComprehensiveModel)")
-            # Depending on the platform where the test is being run, bigintfield_max
-            # may be an integer or a long, depending on the value of sys.maxint.
-            # The repr() result on the field will vary accordingly (L suffix or not)
-            # so the assertEqual operand must vary also.
-            self.assertEqual(lines[6], "tests_comprehensivemodel_fixture.add(1, "
-                "**{'bigint': %s, 'boolean': True, 'char': u'Hey hey now', "
-                "'date': datetime.date(2011, 6, 6), 'datetime': datetime.datetime(2011, 5, 5, 12, 30, 7), "
-                "'decimal': Decimal('1234.56'), 'floatf': 2345.67, 'integer': 345678, 'nullboolean': None, "
-                "'text': u'Bacon ipsum dolor sit amet ham eiusmod cupidatat, hamburger voluptate non dolor. "
-                    "Pork belly excepteur chuck, shankle ullamco fugiat meatloaf est quis meatball sint dolore. "
-                    "Shank drumstick sint, tri-tip deserunt proident in. Pancetta laboris culpa beef, pork chop "
-                    "venison magna duis tail. Nulla in sirloin, minim bresaola ham cupidatat drumstick spare ribs "
-                    "eiusmod ut. Shankle mollit ut, short ribs pork chop drumstick meatloaf duis elit reprehenderit. "
-                    r"Cillum short loin flank est beef.\n\nAnd the second paragraph looks like this.', "
-                "'time': datetime.time(14, 45, 30)})" % repr(bigintfield_max))
+
+        self.assertEqual(lines[2], "from tests.models import ComprehensiveModel")
+        self.assertEqual(lines[4], "tests_comprehensivemodel_fixture = Fixture(ComprehensiveModel)")
+
+        # Read-only code that turns the dumpdata output into a dictionary of
+        # keys and values to be tested individually
+        model_fields = dict([(j[0].strip("'"), j[1].strip(" ")) for j in
+            [i.split(':') for i in re.split(", '|\{|\}\)", lines[6]) if ':' in i]
+        ])
+
+        # Depending on the platform where the test is being run, bigintfield_max
+        # may be an integer or a long, depending on the value of sys.maxint.
+        # The repr() result on the field will vary accordingly (L suffix or not),
+        # so we can't have a simple string constant here.
+        self.assertEqual(model_fields['bigint'], repr(bigintfield_max))
+        self.assertEqual(model_fields['boolean'], 'True')
+        self.assertEqual(model_fields['char'], "u'Hey hey now'")
+        self.assertEqual(model_fields['date'], 'datetime.date(2011, 6, 6)')
+        self.assertEqual(model_fields['datetime'], 'datetime.datetime(2011, 5, 5, 12, 30, 7)')
+        self.assertEqual(model_fields['decimal'], "Decimal('1234.56')")
+        self.assertEqual(model_fields['floatf'], '2345.67')
+        self.assertEqual(model_fields['integer'], '345678')
+        self.assertEqual(model_fields['nullboolean'], 'None')
+        self.assertEqual(model_fields['time'], 'datetime.time(14, 45, 30)')
+        self.assertEqual(model_fields['text'], "u'Bacon ipsum dolor sit amet ham eiusmod cupidatat, "
+            "hamburger voluptate non dolor. Pork belly excepteur chuck, shankle ullamco fugiat meatloaf "
+            "est quis meatball sint dolore. Shank drumstick sint, tri-tip deserunt proident in. Pancetta "
+            "laboris culpa beef, pork chop venison magna duis tail. Nulla in sirloin, minim bresaola ham "
+            "cupidatat drumstick spare ribs eiusmod ut. Shankle mollit ut, short ribs pork chop drumstick "
+            "meatloaf duis elit reprehenderit. Cillum short loin flank est beef.\\n\\n"
+            "And the second paragraph looks like this.'")
 
     def test_natural_key_output(self):
         rails_n00b = Competency.objects.create(framework='Ruby on Rails', level=1)
