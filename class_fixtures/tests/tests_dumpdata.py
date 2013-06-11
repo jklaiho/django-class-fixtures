@@ -100,6 +100,13 @@ class DumpDataTests(TestCase):
 And the second paragraph looks like this.""",
             time = datetime.time(14, 45, 30)
         )
+        # There's some strange variance on whether bigint long numbers are
+        # repr'd with the L suffix or without it, seemingly by platform (Linux
+        # and OS X seem to differ, at least), which affects the success of this
+        # test if we assume one or the other. So, we repr it separately here and
+        # use string substitution in the assertEqual call below.
+        bigint_repr = repr(cm.bigint)
+
         with string_stdout() as output:
             call_command('dumpdata', 'tests', format='class', exclude=[
                 'tests.Party', 'tests.Politician'])
@@ -107,7 +114,7 @@ And the second paragraph looks like this.""",
             self.assertEqual(lines[2], "from tests.models import ComprehensiveModel")
             self.assertEqual(lines[4], "tests_comprehensivemodel_fixture = Fixture(ComprehensiveModel)")
             self.assertEqual(lines[6], "tests_comprehensivemodel_fixture.add(1, "
-                "**{'bigint': 9223372036854775807, 'boolean': True, 'char': u'Hey hey now', "
+                "**{'bigint': %s, 'boolean': True, 'char': u'Hey hey now', "
                 "'date': datetime.date(2011, 6, 6), 'datetime': datetime.datetime(2011, 5, 5, 12, 30, 7), "
                 "'decimal': Decimal('1234.56'), 'floatf': 2345.67, 'integer': 345678, 'nullboolean': None, "
                 "'text': u'Bacon ipsum dolor sit amet ham eiusmod cupidatat, hamburger voluptate non dolor. "
@@ -116,7 +123,7 @@ And the second paragraph looks like this.""",
                     "venison magna duis tail. Nulla in sirloin, minim bresaola ham cupidatat drumstick spare ribs "
                     "eiusmod ut. Shankle mollit ut, short ribs pork chop drumstick meatloaf duis elit reprehenderit. "
                     r"Cillum short loin flank est beef.\n\nAnd the second paragraph looks like this.', "
-                "'time': datetime.time(14, 45, 30)})")
+                "'time': datetime.time(14, 45, 30)})" % bigint_repr)
 
     def test_natural_key_output(self):
         rails_n00b = Competency.objects.create(framework='Ruby on Rails', level=1)
