@@ -9,7 +9,7 @@ f.close()
 
 setup(
     name='django-class-fixtures',
-    version=".".join(map(str, VERSION)),
+    version='0.9a1'
     description='django-class-fixtures is a reusable Django application that '
         'enables the use of class-based fixtures alongside traditional '
         'serialized files for tests and initial data.',
