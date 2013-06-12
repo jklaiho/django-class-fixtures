@@ -139,7 +139,7 @@ And the second paragraph looks like this.""")
         self.assertEqual(model_fields['decimal'], "Decimal('1234.56')")
         # Float representations are tricky prior to Python 2.7, hopefully this
         # is a good enough test for correctness of repr(2345.67) there
-        self.assertRegexpMatches(model_fields['floatf'], '^2345.6(70*|69*)$')
+        self.assertRegexpMatches(model_fields['floatf'], '^2345.6(70*|69*)\d?$')
         self.assertEqual(model_fields['integer'], '345678')
         self.assertEqual(model_fields['nullboolean'], 'None')
         self.assertEqual(model_fields['time'], 'datetime.time(14, 45, 30)')
