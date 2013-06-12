@@ -121,19 +121,12 @@ def associate_handlers(fixture_labels):
                             continue
                         else:
                             raise e
-                
-                if getattr(settings, 'FIXTURE_PACKAGES', False) \
-                    and isinstance(settings.FIXTURE_PACKAGES, Iterable):
-                    if not all([isinstance(m, basestring) for m in settings.FIXTURE_PACKAGES]):
-                        raise ImproperlyConfigured('settings.FIXTURE_PACKAGES can only contain strings (package paths in dotted path notation)')
+
+                if check_fixture_packages_setting():
+                    # If the string in FIXTURE_PACKAGES is valid,
+                    # further ImportErrors regarding nonexistent modules
+                    # are to be expected
                     for package_path in settings.FIXTURE_PACKAGES:
-                        try:
-                            package = import_module(package_path)
-                        except ImportError:
-                            raise ImportError('settings.FIXTURE_PACKAGES: %s is not an importable Python package' % package_path)
-                        # OK, the string in FIXTURE_PACKAGES is valid,
-                        # further ImportErrors regarding nonexistent modules
-                        # are to be expected
                         try:
                             submodule = import_module('%s.%s' % (package_path, label))
                             handlers.append((label, 'class_fixtures', 'submodule_name', submodule))
@@ -149,9 +142,9 @@ def associate_handlers(fixture_labels):
 
 def gather_initial_data_fixtures(using=None):
     """
-    Iterate through the ``fixtures`` package of all installed apps, looking
-    for contained initial_data modules and returning a list of all that are
-    found.
+    Iterate through the ``fixtures`` package of all installed apps and any
+    packages in settings.FIXTURE_PACKAGES, looking for contained initial_data
+    modules and returning a list of all that are found.
     """
     initial_fixtures = []
     for appname in settings.INSTALLED_APPS:
@@ -165,9 +158,31 @@ def gather_initial_data_fixtures(using=None):
                 initial_fixtures.extend(get_fixtures_from_module(initial_data))
         except ImportError, e:
             raise ImportError('In %s.fixtures.initial_data: %s' % (appname, e))
-    
+
+    if check_fixture_packages_setting():
+        for package_path in settings.FIXTURE_PACKAGES:
+            package = import_module(package_path)
+            try:
+                if module_has_submodule(package, 'initial_data'):
+                    initial_data = import_module('%s.initial_data' % package_path)
+                    initial_fixtures.extend(get_fixtures_from_module(initial_data))
+            except ImportError, e:
+                raise ImportError('In %s.initial_data: %s' % (package_path, e))
+
     return initial_fixtures
 
+def check_fixture_packages_setting():
+    if getattr(settings, 'FIXTURE_PACKAGES', False):
+        if not isinstance(settings.FIXTURE_PACKAGES, Iterable) or not all([isinstance(m, basestring) for m in settings.FIXTURE_PACKAGES]):
+            raise ImproperlyConfigured('settings.FIXTURE_PACKAGES must be an iterable of strings (package paths in dotted path notation)')
+        for package_path in settings.FIXTURE_PACKAGES:
+            try:
+                import_module(package_path)
+            except ImportError:
+                raise ImportError('settings.FIXTURE_PACKAGES: %s is not an importable Python package' % package_path)
+        return True
+    else:
+        return False
 
 def get_fixtures_from_module(module):
     """
