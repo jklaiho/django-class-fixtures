@@ -1,15 +1,14 @@
 #!/usr/bin/env python
 import os
 from setuptools import setup, find_packages
-from class_fixtures import VERSION
 
-f = open(os.path.join(os.path.dirname(__file__), 'README.rst'))
+f = open(os.path.join(os.path.dirname(__file__), 'README.md'))
 readme = f.read()
 f.close()
 
 setup(
     name='django-class-fixtures',
-    version='0.9a1'
+    version='0.9a1',
     description='django-class-fixtures is a reusable Django application that '
         'enables the use of class-based fixtures alongside traditional '
         'serialized files for tests and initial data.',
