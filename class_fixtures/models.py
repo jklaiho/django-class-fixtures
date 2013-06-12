@@ -24,21 +24,21 @@ class Fixture(object):
     """
     A class-based fixture. Relies on the overridden ``loaddata`` command of
     django-class-fixtures.
-    
+
     Each ``Fixture`` instance is tied to one model class. Instances have an
     ``add`` method which receives a primary key value followed by the same
     keyword arguments that would be used to create instances of that model.
-    
+
     You can have multiple fixtures per model, like so::
-    
+
         admin_fixture = Fixture(User)
         staff_fixture = Fixture(User)
-    
+
     You can then ``add()`` different sets of User objects to each.
-    
+
     Fixture instances have a ``load`` method, which does the work of actually
     saving the model objects and their relations into the database.
-    
+
     For the full details, see the documentation.
     """
     def __init__(self, model, raw=False):
@@ -53,20 +53,20 @@ class Fixture(object):
         # Enable DeserializedObject-like raw saves that bypass custom save
         # methods (which Django's loaddata does)
         self.raw = raw
-        
+
         # Allow for custom model classes, not just models.Model subclasses.
         if isinstance(model, models.base.ModelBase):
             self.model = model
         else:
             raise TypeError('%s is not a Django model class' % model.__name__)
-    
+
     def add(self, *args, **kwargs):
         """
         A tiny gatekeeper method. Checks that ``args`` contains precisely one
         item, assumed to be a valid primary key for an instance of
         ``self.model``. See ``_add`` for the actual instance adding
         functionality.
-        
+
         The reason this method exists is that running some_fixture.add()
         without the positional PK parameter (a common mistake in handmade
         fixtures) raises an unhelpful TypeError that can't be caught in _add.
@@ -74,18 +74,18 @@ class Fixture(object):
         if len(args) != 1:
             raise FixtureUsageError('Fixture.add() must receive a primary key value as its single positional argument')
         self._add(*args, **kwargs)
-    
+
     def _add(self, pk, **kwargs):
         """
         Adds model instance definitions to the Fixture instance. Does *not*
         write anything to the database (that is done when the ``load`` method
         gets run later).
-        
+
         The ``pk`` parameter is the hard-coded primary key for the object.
         Hard-coding is needed for accuracy with how Django's loaddata works
         (assumes serialized primary keys, overwrites existing objects when
         running loaddata).
-        
+
         The remaining keyword arguments are very close to those you would you
         would give to a model instance constructor or a manager's ``create``
         method. This is too complex a topic for this docstring, see the
@@ -95,17 +95,17 @@ class Fixture(object):
             raise FixtureUsageError('Cannot add more objects to a loaded fixture')
         if pk in self._kwarg_storage:
             raise FixtureUsageError('Primary key %s already added to another object in the same fixture.' % pk)
-        
+
         definitions = self._build_relations(**kwargs)
-        
+
         definitions.update({'pk': pk})
         self._kwarg_storage[pk] = definitions
-    
+
     def add_random(self, pk, **kwargs):
         """
         Creates randomly generated model instances using Milkman, if it is
         installed. Raises a FixtureUsageError if not.
-        
+
         Since the point of this integration is to be able to easily and safely
         mix generated and predefined Fixture instances, we still require
         explicit primary keys (milkman does not).
@@ -114,12 +114,12 @@ class Fixture(object):
             raise FixtureUsageError('Milkman is not installed, Fixture.add_random() not available.')
         if pk in self._kwarg_storage:
             raise FixtureUsageError('Primary key %s already added to another object in the same fixture.' % pk)
-        
+
         definitions = self._build_relations(**kwargs)
-        
+
         definitions.update({'pk': pk})
         self._kwarg_storage[pk] = DelayedMilkmanDelivery(**definitions)
-    
+
     def _build_relations(self, **kwargs):
         for fieldname, value in kwargs.items():
             field_is_m2m = False
@@ -137,17 +137,17 @@ class Fixture(object):
                 if not isinstance(value, Iterable):
                     raise FixtureUsageError('Non-iterable value %s passed to '\
                         'the "%s" M2M field in an add() call.' % (value, fieldname))
-            
+
             # Case 1: Relations to objects that don't yet exist but are
-            # defined in this or some other Fixture instance. They are 
+            # defined in this or some other Fixture instance. They are
             # represented as DelayedRelatedObjectLoader instances.
-            
+
             # Normalize to a list to keep the logic below simpler and DRYer
             if not isinstance(value, Iterable):
                 value_list = [value]
             else:
                 value_list = value
-            
+
             if any([isinstance(v, DelayedRelatedObjectLoader) for v in value_list]):
                 # Add the Fixture instances that DelayedRelatedObjectLoaders
                 # point to as dependencies that need to be loaded before this
@@ -156,14 +156,14 @@ class Fixture(object):
                     if isinstance(v, DelayedRelatedObjectLoader):
                         if self in v.fixture_instance._dependencies:
                             raise RelatedObjectError('Circular dependency between '\
-                                'Fixture instances for %s and %s' % 
+                                'Fixture instances for %s and %s' %
                                 self.model, v.fixture_instance.model)
                         if v.fixture_instance not in self._dependencies and v.fixture_instance != self:
                             self._dependencies.append(v.fixture_instance)
-            
+
             # Case 2: Relating to pre-existing objects, not ones getting
             # created in the fixture loading process.
-            
+
             # The model class itself won't have attributes named after
             # its fields, except the descriptors created by FK/M2M/O2O
             # fields, which are precisely what we're after here.
@@ -186,7 +186,7 @@ class Fixture(object):
                         raise RelatedObjectError('Unknown descriptor-related '\
                             'error condition. Please file a bug report for '\
                             'django-class-fixtures.')
-                
+
                 # Turn any values that don't evaluate to boolean False and are
                 # not DelayedRelatedObjectLoaders into RelatedObjectLoader
                 # instances.
@@ -201,46 +201,46 @@ class Fixture(object):
                             else:
                                 loaders.append(v)
                         kwargs.update({fieldname: loaders})
-        
+
         return kwargs
-    
+
     def load(self, using=None):
         """
         Creates model instances from the stored definitions and writes them
         to the database.
-        
+
         You generally won't run this method by hand, as it's handled by the
         fixture discovery and loading process of the overridden ``loaddata``
         command.
-        
+
         Returns the number of objects saved to the database.
         """
         self._adding_allowed = False
         saved_objects = {}
-        
+
         # Load any unloaded dependencies of this instance first
         for dep in self._dependencies:
             saved_objects.update(dep.load(using=using))
-        
+
         # Offload the actual processing to a FixtureLoader instance
         fl = FixtureLoader(self._kwarg_storage, self)
         saved_objects.update(fl.load(using=using, raw=self.raw))
         fl.create_m2m_relations(using=using)
         return saved_objects
-    
+
     def get_object_by_pk(self, pk, using=None):
         try:
             return self.model._default_manager.db_manager(using).get(pk=pk)
         except self.model.DoesNotExist:
             raise RelatedObjectError('No %s object found with the primary key %s'\
                 % (self.model._meta.object_name, pk))
-    
+
     def _create_delayed_relation(self, pk):
         """
         Places DelayedRelatedObjectLoader instances as value placeholders in
         model definition kwargs. The ``load`` method will later parse these
         into the actual related objects.
-        
+
         ``fk``, ``m2m`` and ``o2o`` are functionally identical aliases of this
         method to make fixture construction more self-documenting.
         """
@@ -253,7 +253,7 @@ class FixtureLoader(object):
     A utility class, throwaway instances of which are generated by
     ``Fixture.load``. Constructs objects from the ``kwarg_storage``
     OrderedDict, saves them to the database and builds any M2M relations.
-    
+
     Enables keeping Fixture instances state-free regarding actual
     created objects.
     """
@@ -265,12 +265,12 @@ class FixtureLoader(object):
         self._pending_m2m = {}
         # PKs as keys, saved objects as values.
         self.saved = OrderedDict()
-    
+
     def load(self, using=None, raw=False):
         """
         Does the actual work of creating objects from definitions stored in
         Fixture instances.
-        
+
         Returns the number of objects saved to the database.
         """
         # Replace ObjectLoaders with the actual objects
@@ -317,7 +317,7 @@ class FixtureLoader(object):
             # Safe to modify, since we're iterating over the items() output,
             # not the dictionary itself.
             self.kwarg_storage[pk] = resolved_def
-            
+
             if router.allow_syncdb(using, self.fixture_instance.model):
                 if isinstance(model_def, DelayedMilkmanDelivery):
                     self.saved[pk] = milkman.deliver(self.fixture_instance.model, **resolved_def)
@@ -331,9 +331,9 @@ class FixtureLoader(object):
                         obj = self.fixture_instance.model(**resolved_def)
                         obj.save(using=using)
                         self.saved[pk] = obj
-        
+
         return self.saved
-    
+
     def create_m2m_relations(self, using=None):
         """
         Writes any pending M2M relations to the database after the objects
@@ -353,7 +353,7 @@ class ObjectLoader(object):
     """
     def __init__(self, *args, **kwargs):
         raise NotImplementedError('Use one of the child classes of ObjectLoader.')
-    
+
     def get_related_object(self, using=None):
         raise NotImplementedError('Use one of the child classes of ObjectLoader.')
 
@@ -368,7 +368,7 @@ class DelayedRelatedObjectLoader(ObjectLoader):
     def __init__(self, fixture_instance, pk):
         self.fixture_instance = fixture_instance
         self.pk = pk
-    
+
     def get_related_object(self, using=None):
         return self.fixture_instance.get_object_by_pk(self.pk, using=using)
 
@@ -378,18 +378,18 @@ class RelatedObjectLoader(ObjectLoader):
     When ``Fixture.add`` calls include non-DelayedRelatedObjectLoader values
     for relation field kwargs, RelatedObjectLoader instances are created as
     placeholders.
-    
+
     Example::
-        
+
         some_fixture = Fixture(SomeModel)
         some_fixture.add(name="foo", some_related_fk=12, some_m2m=[10, 18])
         some_fixture.add(name="bar", some_related_fk=obj1, some_m2m=[obj2, obj3])
-    
+
     The values passed as the ``some_related_fk`` and ``some_m2m`` kwargs
     are seen by ``add`` to not be DelayedRelatedObjectLoaders, so the job of
     figuring out if and how to turn them into proper object instances is left
     to the ``get_related_object`` method of this class.
-    
+
     See DelayedRelatedObjectLoader for the similar implementation of relations
     that live in Fixture instances.
     """
@@ -397,7 +397,7 @@ class RelatedObjectLoader(ObjectLoader):
         self.model = model
         # Either a PK value, a natural key tuple or a model instance.
         self.identifier = identifier
-    
+
     def get_related_object(self, using=None):
         """
         When this gets called, what self.identifier contains is unknown.

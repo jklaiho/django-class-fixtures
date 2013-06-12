@@ -18,9 +18,9 @@ def associate_handlers(fixture_labels):
     """
     Examines the fixture labels, determining which should be loaded by
     django-class-fixtures and which by Django.
-    
+
     Returns a list of (label, handler, type, obj) tuples like this::
-    
+
         [
             ('fixture.json', 'django', None, None),
             (fixture_instance, 'class_fixtures', 'instance', None),
@@ -28,22 +28,22 @@ def associate_handlers(fixture_labels):
             ('appname.fixturemodule', 'class_fixtures', 'submodule_name', submodule_reference)
             ('appname', 'class_fixtures', 'app_label', fixtures_package_reference)
         ]
-    
+
     ``type`` is None for Django fixtures, or one of the following identified
     label types for class-based fixtures: 'instance', 'module', 'app_label',
     'submodule_name'
-    
+
     ``obj`` is None for Django fixtures, or one of the following for class-
     based fixtures:
       - a reference to a submodule of the ``someapp.fixtures`` package
       - a reference to the ``someapp.fixtures`` package itself
       - None where the instance or module reference is itself the ``label``
         item of the tuple and no further resolving was necessary
-    
+
     """
     handlers = []
     django_formats = get_public_serializer_formats()
-    
+
     for label in fixture_labels:
         if isinstance(label, Fixture):
             handlers.append((label, 'class_fixtures', 'instance', None))
@@ -96,7 +96,7 @@ def associate_handlers(fixture_labels):
             else:
                 # The label is a string like "blarbagh" or "what.ever.now"
                 # which can be one or more of:
-                # a) a Django fixture file with any of the registered 
+                # a) a Django fixture file with any of the registered
                 #    fixture extensions ("blarbagh.json" or
                 #    "what.ever.now.xml")
                 # b) the name of a module in some app's fixtures package
@@ -111,7 +111,7 @@ def associate_handlers(fixture_labels):
                 # with the 'class_fixtures' handler, assuming any matching
                 # modules.
                 handlers.append((label, 'django', None, None))
-                
+
                 for appname in settings.INSTALLED_APPS:
                     try:
                         submodule = import_module('%s.fixtures.%s' % (appname, label))
@@ -135,6 +135,7 @@ def associate_handlers(fixture_labels):
                                 continue
                             else:
                                 raise e
+
         else:
             raise FixtureUsageError('Invalid fixture label "%s"' % label)
     return handlers
@@ -204,14 +205,14 @@ def process_django_output(output):
     by our loaddata override. This method extracts the reported object and
     fixture counts from the output, as well as any extra messages that were
     printed with higher verbosity levels.
-    
+
     Returns a (object_count, fixture_count, [other_msg_list]) tuple.
     """
     counts = []
     other_msgs = []
     output_msgs = output.split('\n')
     pattern = re.compile(r'Installed (?P<object_count>\d+) object\(s\)(?: \(of \d+\))? from (?P<fixture_count>\d+) fixture\(s\)')
-    
+
     for msg in output_msgs:
         if not msg: continue # skip blanks created by the \n split
         match = pattern.search(msg)
@@ -219,8 +220,8 @@ def process_django_output(output):
             counts.append(match.groups())
         else:
             other_msgs.append(msg)
-    
+
     # Everybody loves nested list comprehensions.
     total_counts = [sum(z) for z in zip(*[(int(tup[0]), int(tup[1])) for tup in counts])] or [0, 0]
-    
+
     return (total_counts[0], total_counts[1], other_msgs)

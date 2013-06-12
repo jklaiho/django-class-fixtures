@@ -2,16 +2,16 @@
     {
         "pk": 1,
          "model": "tests.party",
-         "fields": 
+         "fields":
         {
             "name": "Initial Party"
         }
     },
-    
+
     {
         "pk": 1,
          "model": "tests.politician",
-         "fields": 
+         "fields":
         {
             "name": "Initial Politician",
             "party": 1,

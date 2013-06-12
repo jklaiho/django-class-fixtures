@@ -2,52 +2,52 @@
     {
         "pk": 3,
          "model": "tests.band",
-         "fields": 
+         "fields":
         {
             "name": "A Band"
         }
     },
-     
+
     {
         "pk": 4,
          "model": "tests.band",
-         "fields": 
+         "fields":
         {
             "name": "Judas Bishop"
         }
     },
-     
+
     {
         "pk": 4,
          "model": "tests.metalband",
-         "fields": 
+         "fields":
         {
             "leather_pants_worn": true
         }
     },
-     
+
     {
         "pk": 3,
          "model": "tests.musician",
-         "fields": 
+         "fields":
         {
             "name": "Rob Halberd"
         }
     },
-     
+
     {
         "pk": 4,
          "model": "tests.musician",
-         "fields": 
+         "fields":
         {
             "name": "Tom Deaf"
         }
     },
-     
+
     {
         "pk": 4,
          "model": "tests.membership",
-         "fields": 
+         "fields":
         {
             "band": 3,
              "musician": 4,
@@ -55,11 +55,11 @@
              "date_joined": "2005-01-01"
         }
     },
-     
+
     {
         "pk": 5,
          "model": "tests.membership",
-         "fields": 
+         "fields":
         {
             "band": 3,
              "musician": 3,
@@ -67,11 +67,11 @@
              "date_joined": "2005-01-01"
         }
     },
-     
+
     {
         "pk": 6,
          "model": "tests.membership",
-         "fields": 
+         "fields":
         {
             "band": 4,
              "musician": 3,
@@ -79,13 +79,13 @@
              "date_joined": "2007-09-12"
         }
     },
-     
+
     {
         "pk": 2,
          "model": "tests.roadie",
-         "fields": 
+         "fields":
         {
-            "hauls_for": 
+            "hauls_for":
             [
                 3,
                  4

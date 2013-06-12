@@ -37,7 +37,7 @@ class Employee(models.Model):
     company = models.ForeignKey(Company)
     manager = models.ForeignKey('self', null=True)
     cog_in_the_machine = models.BooleanField(default=False)
-    
+
     def save(self, *args, **kwargs):
         if ' corp' in self.company.name.lower():
             self.cog_in_the_machine = True
@@ -65,12 +65,12 @@ class Competency(models.Model):
     )
     framework = models.CharField(max_length=100)
     level = models.SmallIntegerField(choices=LEVEL_CHOICES)
-    
+
     objects = CompetencyManager()
-    
+
     def natural_key(self):
         return (self.framework, self.level)
-    
+
     class Meta(object):
         unique_together = (('framework', 'level'))
 

@@ -2,52 +2,52 @@
     {
         "pk": 1,
          "model": "tests.band",
-         "fields": 
+         "fields":
         {
             "name": "The Featless"
         }
     },
-     
+
     {
         "pk": 2,
          "model": "tests.band",
-         "fields": 
+         "fields":
         {
             "name": "Cannibal Cops"
         }
     },
-     
+
     {
         "pk": 2,
          "model": "tests.metalband",
-         "fields": 
+         "fields":
         {
             "leather_pants_worn": false
         }
     },
-     
+
     {
         "pk": 1,
          "model": "tests.musician",
-         "fields": 
+         "fields":
         {
             "name": "Dingo Nyarr"
         }
     },
-     
+
     {
         "pk": 2,
          "model": "tests.musician",
-         "fields": 
+         "fields":
         {
             "name": "Trish Barns"
         }
     },
-     
+
     {
         "pk": 1,
          "model": "tests.membership",
-         "fields": 
+         "fields":
         {
             "band": 1,
              "musician": 1,
@@ -55,11 +55,11 @@
              "date_joined": "1980-06-06"
         }
     },
-     
+
     {
         "pk": 2,
          "model": "tests.membership",
-         "fields": 
+         "fields":
         {
             "band": 1,
              "musician": 2,
@@ -67,11 +67,11 @@
              "date_joined": "2010-01-12"
         }
     },
-     
+
     {
         "pk": 3,
          "model": "tests.membership",
-         "fields": 
+         "fields":
         {
             "band": 2,
              "musician": 1,
@@ -79,13 +79,13 @@
              "date_joined": "1995-11-11"
         }
     },
-     
+
     {
         "pk": 1,
          "model": "tests.roadie",
-         "fields": 
+         "fields":
         {
-            "hauls_for": 
+            "hauls_for":
             [
                 1,
                  2
@@ -93,42 +93,42 @@
              "name": "Smokey Onthewater"
         }
     },
-    
+
     {
         "pk": 1,
          "model": "tests.company",
-         "fields": 
+         "fields":
         {
             "name": "EvilCorp Inc."
         }
     },
-    
+
     {
         "pk": 1,
          "model": "tests.employee",
-         "fields": 
+         "fields":
         {
             "manager": null,
             "name": "M.T. Suit",
             "company": 1
         }
     },
-    
+
     {
         "pk": 2,
          "model": "tests.employee",
-         "fields": 
+         "fields":
         {
             "manager": 1,
             "name": "Karl Drone",
             "company": 1
         }
     },
-    
+
     {
         "pk": 1,
          "model": "tests.employeehistory",
-         "fields": 
+         "fields":
         {
             "employee": 1,
             "date_joined": "2002-04-27"
@@ -138,7 +138,7 @@
     {
         "pk": 2,
          "model": "tests.employeehistory",
-         "fields": 
+         "fields":
         {
             "employee": 2,
             "date_joined": "2008-09-03"
