@@ -163,17 +163,22 @@ And the second paragraph looks like this.""")
 
         django_job.additional_competencies.add(rails_n00b)
         misc_job.additional_competencies.add(cake_adept, rails_n00b)
+
         with string_stdout() as output:
             call_command('dumpdata', 'tests', format='class', exclude=[
                 'tests.Party', 'tests.Politician'])
-            lines = output.getvalue().split('\n')
-            self.assertEqual(lines[2], "from tests.models import Competency, JobPosting")
-            self.assertEqual(lines[4], "tests_competency_fixture = Fixture(Competency)")
-            self.assertEqual(lines[5], "tests_jobposting_fixture = Fixture(JobPosting)")
-            self.assertEqual(lines[7], "tests_competency_fixture.add(1, **{'framework': u'Ruby on Rails', 'level': 1})")
-            self.assertEqual(lines[8], "tests_competency_fixture.add(2, **{'framework': u'CakePHP', 'level': 2})")
-            self.assertEqual(lines[9], "tests_competency_fixture.add(3, **{'framework': u'Spring', 'level': 3})")
-            self.assertEqual(lines[10], "tests_competency_fixture.add(4, **{'framework': u'Django', 'level': 4})")
-            self.assertEqual(lines[11], "tests_jobposting_fixture.add(1, **{'additional_competencies': [], 'main_competency': 1, 'title': u'Rails Intern'})")
-            self.assertEqual(lines[12], "tests_jobposting_fixture.add(2, **{'additional_competencies': [1], 'main_competency': 4, 'title': u'Elder Django Deity'})")
-            self.assertEqual(lines[13], "tests_jobposting_fixture.add(3, **{'additional_competencies': [1, 2], 'main_competency': 3, 'title': u'A man of many talents'})")
+
+        lines = output.getvalue().split('\n')
+        self.assertEqual(lines[2], "from tests.models import Competency, JobPosting")
+        self.assertEqual(lines[4], "tests_competency_fixture = Fixture(Competency)")
+        self.assertEqual(lines[5], "tests_jobposting_fixture = Fixture(JobPosting)")
+        # Django 1.4+ returns these lines in order, but Django 1.3 doesn't, so just check
+        # that they're included rather than included in order
+        self.assertTrue("tests_competency_fixture.add(1, **{'framework': u'Ruby on Rails', 'level': 1})" in lines)
+        self.assertTrue("tests_competency_fixture.add(2, **{'framework': u'CakePHP', 'level': 2})" in lines)
+        self.assertTrue("tests_competency_fixture.add(3, **{'framework': u'Spring', 'level': 3})" in lines)
+        self.assertTrue("tests_competency_fixture.add(4, **{'framework': u'Django', 'level': 4})" in lines)
+
+        self.assertEqual(lines[11], "tests_jobposting_fixture.add(1, **{'additional_competencies': [], 'main_competency': 1, 'title': u'Rails Intern'})")
+        self.assertEqual(lines[12], "tests_jobposting_fixture.add(2, **{'additional_competencies': [1], 'main_competency': 4, 'title': u'Elder Django Deity'})")
+        self.assertEqual(lines[13], "tests_jobposting_fixture.add(3, **{'additional_competencies': [1, 2], 'main_competency': 3, 'title': u'A man of many talents'})")
