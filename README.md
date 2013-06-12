@@ -7,7 +7,7 @@ XML or YAML files, with all the flexibility that allows.
 Requirements:
 
 * Python 2.6+ (Python 3 is not yet supported)
-* Django 1.2+
+* Django 1.3+
 
 Comprehensive documentation with examples and tutorials can be found under
 [docs/](docs/) in reStructuredText format, but the most comfortable way to read it
