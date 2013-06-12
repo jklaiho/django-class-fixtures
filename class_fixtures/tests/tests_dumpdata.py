@@ -120,8 +120,18 @@ And the second paragraph looks like this.""")
         # Depending on the platform where the test is being run, bigintfield_max
         # may be an integer or a long, depending on the value of sys.maxint.
         # The repr() result on the field will vary accordingly (L suffix or not),
-        # so we can't have a simple string constant here.
-        self.assertEqual(model_fields['bigint'], repr(bigintfield_max))
+        # so assertEqual instead repr()'s the value (like the serializer does)
+        # because we can't have a single string representation for the value
+        # that would work across all platforms.
+        #
+        # There's one more complication: on some systems, Python sees the
+        # bigintfield_max value as an integer, but after it comes back from the
+        # database, it is transformed into a long, presumably due to the SQLite
+        # configuration. So, we retrieve the object from the database and repr()
+        # its bigint field instead of the original value.
+        db_cm = ComprehensiveModel.objects.get(pk=cm.pk)
+
+        self.assertEqual(model_fields['bigint'], repr(db_cm.bigint))
         self.assertEqual(model_fields['boolean'], 'True')
         self.assertEqual(model_fields['char'], "u'Hey hey now'")
         self.assertEqual(model_fields['date'], 'datetime.date(2011, 6, 6)')
