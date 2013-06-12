@@ -5,8 +5,7 @@ except ImportError:
 
 from django.core.serializers.base import SerializationError, DeserializationError
 from django.core.serializers.python import _get_model
-from django.db import models
-from django.utils.encoding import smart_unicode
+
 
 class ClassicReprOrderedDict(OrderedDict):
     """An OrderedDict subclass with a custom, dict-like __repr__ method."""
@@ -14,8 +13,8 @@ class ClassicReprOrderedDict(OrderedDict):
         if not self:
             return '{}'
         itemlist = []
-        for k,v in self.items():
-            itemlist.append("%r: %r" % (k,v))
+        for k, v in self.items():
+            itemlist.append("%r: %r" % (k, v))
         return '{%s}' % ', '.join(itemlist)
 
 def dump_class_fixtures(objects, stream, **options):
