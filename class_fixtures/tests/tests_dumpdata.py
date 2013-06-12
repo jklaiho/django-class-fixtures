@@ -111,7 +111,7 @@ And the second paragraph looks like this.""")
         self.assertEqual(lines[2], "from tests.models import ComprehensiveModel")
         self.assertEqual(lines[4], "tests_comprehensivemodel_fixture = Fixture(ComprehensiveModel)")
 
-        # Read-only code that turns the dumpdata output into a dictionary of
+        # Write-only code that turns the dumpdata output into a dictionary of
         # keys and values to be tested individually
         model_fields = dict([(j[0].strip("'"), j[1].strip(" ")) for j in
             [i.split(':') for i in re.split(", '|\{|\}\)", lines[6]) if ':' in i]
@@ -137,7 +137,9 @@ And the second paragraph looks like this.""")
         self.assertEqual(model_fields['date'], 'datetime.date(2011, 6, 6)')
         self.assertEqual(model_fields['datetime'], 'datetime.datetime(2011, 5, 5, 12, 30, 7)')
         self.assertEqual(model_fields['decimal'], "Decimal('1234.56')")
-        self.assertEqual(model_fields['floatf'], '2345.67')
+        # Float representations are tricky prior to Python 2.7, hopefully this
+        # is a good enough test for correctness of repr(2345.67) there
+        self.assertRegexpMatches(model_fields['floatf'], '^2345.6(70*|69*)$')
         self.assertEqual(model_fields['integer'], '345678')
         self.assertEqual(model_fields['nullboolean'], 'None')
         self.assertEqual(model_fields['time'], 'datetime.time(14, 45, 30)')
