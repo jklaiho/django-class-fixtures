@@ -42,6 +42,8 @@ def dump_class_fixtures(objects, stream, **options):
 
     stream.write(
         '# -*- coding: utf-8 -*-\n'
+        'import datetime\n'
+        'from decimal import Decimal\n'
         'from class_fixtures.models import Fixture\n'
         '%s\n\n' % '\n'.join(model_imports)
     )

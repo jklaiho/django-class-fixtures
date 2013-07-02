@@ -22,7 +22,7 @@ class DumpDataTests(TestCase):
             call_command('dumpdata', 'tests', format='class', exclude=[
                 'tests.Party', 'tests.Politician'])
             lines = output.getvalue().split('\n')
-            fixture_import, model_imports = lines[1], lines[2]
+            fixture_import, model_imports = lines[3], lines[4]
             self.assertEqual(fixture_import, "from class_fixtures.models import Fixture")
             self.assertEqual(model_imports, "from tests.models import Band, Membership, Musician, Roadie")
 
@@ -36,10 +36,10 @@ class DumpDataTests(TestCase):
             call_command('dumpdata', 'tests', format='class', exclude=[
                 'tests.Party', 'tests.Politician'])
             lines = output.getvalue().split('\n')
-            self.assertEqual(lines[4], 'tests_band_fixture = Fixture(Band)')
-            self.assertEqual(lines[5], 'tests_musician_fixture = Fixture(Musician)')
-            self.assertEqual(lines[6], 'tests_membership_fixture = Fixture(Membership)')
-            self.assertEqual(lines[7], 'tests_roadie_fixture = Fixture(Roadie)')
+            self.assertEqual(lines[6], 'tests_band_fixture = Fixture(Band)')
+            self.assertEqual(lines[7], 'tests_musician_fixture = Fixture(Musician)')
+            self.assertEqual(lines[8], 'tests_membership_fixture = Fixture(Membership)')
+            self.assertEqual(lines[9], 'tests_roadie_fixture = Fixture(Roadie)')
 
     def test_correct_fixture_populating(self):
         band = Band.objects.create(name="Brutallica")
@@ -51,10 +51,10 @@ class DumpDataTests(TestCase):
             call_command('dumpdata', 'tests', format='class', exclude=[
                 'tests.Party', 'tests.Politician'])
             lines = output.getvalue().split('\n')
-            self.assertEqual(lines[9], "tests_band_fixture.add(1, **{'name': u'Brutallica'})")
-            self.assertEqual(lines[10], "tests_musician_fixture.add(1, **{'name': u'Lars Toorich'})")
-            self.assertEqual(lines[11], "tests_membership_fixture.add(1, **{'band': 1, 'date_joined': datetime.date(1982, 1, 1), 'instrument': u'Bongos', 'musician': 1})")
-            self.assertEqual(lines[12], "tests_roadie_fixture.add(1, **{'hauls_for': [1], 'name': u'Ciggy Tardust'})")
+            self.assertEqual(lines[11], "tests_band_fixture.add(1, **{'name': u'Brutallica'})")
+            self.assertEqual(lines[12], "tests_musician_fixture.add(1, **{'name': u'Lars Toorich'})")
+            self.assertEqual(lines[13], "tests_membership_fixture.add(1, **{'band': 1, 'date_joined': datetime.date(1982, 1, 1), 'instrument': u'Bongos', 'musician': 1})")
+            self.assertEqual(lines[14], "tests_roadie_fixture.add(1, **{'hauls_for': [1], 'name': u'Ciggy Tardust'})")
 
     def test_escaped_characters_in_strings(self):
         band = Band.objects.create(name="The Apostrophe's Apostles")
@@ -68,13 +68,13 @@ class DumpDataTests(TestCase):
             call_command('dumpdata', 'tests', format='class', exclude=[
                 'tests.Party', 'tests.Politician'])
             lines = output.getvalue().split('\n')
-            self.assertEqual(lines[9], """tests_band_fixture.add(1, **{'name': u"The Apostrophe's Apostles"})""")
-            self.assertEqual(lines[10], """tests_musician_fixture.add(1, **{'name': u'Ivan "The Terrible" Terrible'})""")
+            self.assertEqual(lines[11], """tests_band_fixture.add(1, **{'name': u"The Apostrophe's Apostles"})""")
+            self.assertEqual(lines[12], """tests_musician_fixture.add(1, **{'name': u'Ivan "The Terrible" Terrible'})""")
             # Raw string to represent what's actually printed out, would be four backslashes without it
-            self.assertEqual(lines[11], r"""tests_musician_fixture.add(2, **{'name': u'\\, aka the artist formerly known as Backslash'})""")
-            self.assertEqual(lines[12], """tests_membership_fixture.add(1, **{'band': 1, 'date_joined': datetime.date(2000, 12, 5), 'instrument': u'Bass', 'musician': 1})""")
-            self.assertEqual(lines[13], """tests_membership_fixture.add(2, **{'band': 1, 'date_joined': datetime.date(2000, 12, 5), 'instrument': u'Guitar', 'musician': 2})""")
-            self.assertEqual(lines[14], """tests_roadie_fixture.add(1, **{'hauls_for': [1], 'name': u"Simon 'Single Quote' DeForestation"})""")
+            self.assertEqual(lines[13], r"""tests_musician_fixture.add(2, **{'name': u'\\, aka the artist formerly known as Backslash'})""")
+            self.assertEqual(lines[14], """tests_membership_fixture.add(1, **{'band': 1, 'date_joined': datetime.date(2000, 12, 5), 'instrument': u'Bass', 'musician': 1})""")
+            self.assertEqual(lines[15], """tests_membership_fixture.add(2, **{'band': 1, 'date_joined': datetime.date(2000, 12, 5), 'instrument': u'Guitar', 'musician': 2})""")
+            self.assertEqual(lines[16], """tests_roadie_fixture.add(1, **{'hauls_for': [1], 'name': u"Simon 'Single Quote' DeForestation"})""")
 
     def test_complex_model(self):
         import datetime
@@ -108,13 +108,13 @@ And the second paragraph looks like this.""")
                 'tests.Party', 'tests.Politician'])
             lines = output.getvalue().split('\n')
 
-        self.assertEqual(lines[2], "from tests.models import ComprehensiveModel")
-        self.assertEqual(lines[4], "tests_comprehensivemodel_fixture = Fixture(ComprehensiveModel)")
+        self.assertEqual(lines[4], "from tests.models import ComprehensiveModel")
+        self.assertEqual(lines[6], "tests_comprehensivemodel_fixture = Fixture(ComprehensiveModel)")
 
         # Write-only code that turns the dumpdata output into a dictionary of
         # keys and values to be tested individually
         model_fields = dict([(j[0].strip("'"), j[1].strip(" ")) for j in
-            [i.split(':') for i in re.split(", '|\{|\}\)", lines[6]) if ':' in i]
+            [i.split(':') for i in re.split(", '|\{|\}\)", lines[8]) if ':' in i]
         ])
 
         # Depending on the platform where the test is being run, bigintfield_max
@@ -169,9 +169,9 @@ And the second paragraph looks like this.""")
                 'tests.Party', 'tests.Politician'])
 
         lines = output.getvalue().split('\n')
-        self.assertEqual(lines[2], "from tests.models import Competency, JobPosting")
-        self.assertEqual(lines[4], "tests_competency_fixture = Fixture(Competency)")
-        self.assertEqual(lines[5], "tests_jobposting_fixture = Fixture(JobPosting)")
+        self.assertEqual(lines[4], "from tests.models import Competency, JobPosting")
+        self.assertEqual(lines[6], "tests_competency_fixture = Fixture(Competency)")
+        self.assertEqual(lines[7], "tests_jobposting_fixture = Fixture(JobPosting)")
         # Django 1.4+ returns these lines in order, but Django 1.3 doesn't, so just check
         # that they're included rather than included in order
         self.assertTrue("tests_competency_fixture.add(1, **{'framework': u'Ruby on Rails', 'level': 1})" in lines)
@@ -179,6 +179,6 @@ And the second paragraph looks like this.""")
         self.assertTrue("tests_competency_fixture.add(3, **{'framework': u'Spring', 'level': 3})" in lines)
         self.assertTrue("tests_competency_fixture.add(4, **{'framework': u'Django', 'level': 4})" in lines)
 
-        self.assertEqual(lines[11], "tests_jobposting_fixture.add(1, **{'additional_competencies': [], 'main_competency': 1, 'title': u'Rails Intern'})")
-        self.assertEqual(lines[12], "tests_jobposting_fixture.add(2, **{'additional_competencies': [1], 'main_competency': 4, 'title': u'Elder Django Deity'})")
-        self.assertEqual(lines[13], "tests_jobposting_fixture.add(3, **{'additional_competencies': [1, 2], 'main_competency': 3, 'title': u'A man of many talents'})")
+        self.assertEqual(lines[13], "tests_jobposting_fixture.add(1, **{'additional_competencies': [], 'main_competency': 1, 'title': u'Rails Intern'})")
+        self.assertEqual(lines[14], "tests_jobposting_fixture.add(2, **{'additional_competencies': [1], 'main_competency': 4, 'title': u'Elder Django Deity'})")
+        self.assertEqual(lines[15], "tests_jobposting_fixture.add(3, **{'additional_competencies': [1, 2], 'main_competency': 3, 'title': u'A man of many talents'})")
